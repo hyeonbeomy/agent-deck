@@ -1,0 +1,77 @@
+{
+	"Name": "Agent Deck",
+	"Version": "0.2.0.0",
+	"Author": "HyeonBeom Yi",
+	"Actions": [
+		{
+			"Name": "Agent Session",
+			"UUID": "com.hbyi.agentdeck.slot",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "Shows one Claude Code / Codex session as an animated mascot (working, sleeping, done, waiting). Press to jump to its window.",
+			"PropertyInspectorPath": "ui/session-slot.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"ShowTitle": false
+				}
+			]
+		},
+		{
+			"Name": "Next Waiting",
+			"UUID": "com.hbyi.agentdeck.next",
+			"Icon": "imgs/actions/next/icon",
+			"Tooltip": "Counts sessions waiting on you. Press to jump to the most urgent one.",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/next/key",
+					"ShowTitle": false
+				}
+			]
+		},
+		{
+			"Name": "System Monitor",
+			"UUID": "com.hbyi.agentdeck.sysmon",
+			"Icon": "imgs/actions/sysmon/icon",
+			"Tooltip": "CPU and RAM usage, refreshed every second. Press to open Task Manager.",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/sysmon/key",
+					"ShowTitle": false
+				}
+			]
+		}
+	],
+	"Category": "Agent Deck",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "One key per Claude Code / Codex session: an animated Claude mascot shows what the session is doing, press to jump to its window. Plus a CPU / RAM monitor key.",
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.0"
+	},
+	"OS": [
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		},
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		}
+	],
+	"Nodejs": {
+		"Version": "20",
+		"Debug": "enabled"
+	},
+	"UUID": "com.hbyi.agentdeck"
+}
