@@ -27,8 +27,8 @@ streamDeck.actions.registerAction(slot);
 streamDeck.actions.registerAction(next);
 streamDeck.actions.registerAction(new SysMonitor(log));
 
-// Hook events (WSL / Windows hook scripts) arrive over HTTP ...
-startServer(store, SERVER_HOST, SERVER_PORT, log);
+// Hook events (WSL / Windows hook scripts) arrive over HTTP; POST /focus presses a key remotely ...
+startServer(store, SERVER_HOST, SERVER_PORT, log, { focus: (key) => deck.focusKey(key) });
 // ... and native sessions are also discovered from Claude Code's own session registry.
 new RegistryWatcher(store, log).start();
 

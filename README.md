@@ -31,12 +31,13 @@ CPU / RAM 사용량을 보여주는 키도 들어 있습니다.
                                                                               │
 [WSL] claude ──hook──> agent-deck-hook.sh ──curl.exe(interop)──>              │
                                                                               │
-                       키 누름 → focus-window.ps1 → [cc:세션ID] 제목의 창/탭, 없으면 PID의 부모 체인에서 창 찾기
+                       키 누름 → focus-window.ps1 → [cc:세션ID] 제목의 창/탭 → PID의 콘솔 제목과 같은 창/탭 → PID의 부모 체인에서 창
 ```
 
 - **세션 레지스트리(hook 없이 동작)**: Claude Code 2.1.119 이상은 실행 중인 세션을 `~/.claude/sessions/<pid>.json`에 기록합니다(`status`: `busy` / `idle` / `waiting`). 플러그인이 이 폴더를 1초마다 읽어서 세션을 찾고, 죽은 PID는 무시합니다. 플러그인만 설치해도 키에 세션이 뜨고 작업 중/자는 중/완료가 표시됩니다.
-- **hook(정밀 상태 + 정확한 탭 이동)**: hook을 설치하면 툴 이름, 승인/질문 구분, 오류 상태가 추가되고, 터미널 제목에 `[cc:xxxxxxxx]` 표식이 들어가 Windows Terminal에서 뒤쪽 탭이라도 정확히 찾아갑니다. hook 이벤트가 레지스트리보다 새로우면 hook 쪽 상태가 우선합니다.
-- **창 찾기 순서**: ① 제목 표식 `[cc:...]`(창 → Windows Terminal 탭, UI Automation) ② 세션 PID의 부모 프로세스 체인에서 보이는 창을 가진 첫 프로세스(WindowsTerminal.exe, conhost 등) ③ 프로젝트 이름이 제목에 들어간 터미널 창.
+- **hook(정밀 상태 + 정확한 탭 이동)**: hook을 설치하면 툴 이름, 승인/질문 구분, 오류 상태가 추가되고, 터미널 제목에 `[cc:xxxxxxxx]` 표식이 들어가 제목이 같은 세션이 여럿이어도 정확한 탭을 찾아갑니다. hook 이벤트가 레지스트리보다 새로우면 hook 쪽 상태가 우선합니다.
+- **창 찾기 순서**: ① 제목 표식 `[cc:...]`(창 → Windows Terminal 탭, UI Automation) ② 세션 PID가 붙어 있는 콘솔의 제목(Claude Code가 "◐ 대화 요약" 식으로 바꿔 둡니다)을 읽어서 같은 제목의 터미널 창 또는 Windows Terminal 탭. 탐색기·시작 메뉴에서 띄운 터미널처럼 프로세스 트리가 WindowsTerminal.exe로 이어지지 않는 경우와, 한 WindowsTerminal.exe가 창을 여러 개 가진 경우에도 맞는 탭을 찾습니다 ③ 세션 PID의 부모 프로세스 체인에서 보이는 창을 가진 첫 프로세스(WindowsTerminal.exe, conhost, VS Code 등. explorer.exe 같은 셸/시스템 프로세스는 건너뜁니다) ④ 프로젝트 이름이 제목에 들어간 터미널 창.
+- **창 이동 디버그**: `curl -X POST http://127.0.0.1:39217/focus -d "{\"pid\":1234}"` (또는 `{"key":"claude:..."}`, `{"label":"프로젝트"}`)가 키를 누른 것과 같은 경로로 창을 띄우고 결과(`ok`, 스크립트 종료 코드 `code`, 소요 시간 `ms`)를 돌려줍니다. 플러그인 로그에도 `focused ...` / `could not focus ...` 줄이 남습니다.
 - WSL2 기본(NAT) 네트워킹에서는 WSL에서 윈도우의 `127.0.0.1`에 닿지 않아서, 윈도우 쪽 `curl.exe`를 WSL interop으로 호출해 보냅니다. mirrored 네트워킹이면 WSL의 curl로 바로 보냅니다. 둘 다 자동으로 시도합니다.
 
 ## 설치
@@ -124,9 +125,10 @@ Codex는 턴이 끝날 때만 알림(`notify`)을 주기 때문에, 키는 **완
 | 증상 | 확인할 것 |
 | --- | --- |
 | 키가 전혀 안 바뀜 | `npm run simulate`로 플러그인부터 확인. 되면 `http://127.0.0.1:39217/state`에 세션이 있는지 확인. 없으면 `~/.claude/sessions/*.json`이 생기는지(Claude Code 2.1.119 이상) 확인. WSL 세션이면 `bash install.sh`를 다시 돌려 연결 확인 결과를 봅니다. |
-| 키는 바뀌는데 눌러도 창이 안 옴 (키에 ⚠ 표시) | hook을 설치했다면 창 제목에 `[cc:...]`가 보이는지 확인. 안 보이면 `CLAUDE_CODE_DISABLE_TERMINAL_TITLE`이 적용됐는지, 세션을 재시작했는지 확인. hook 없이 쓸 때는 `/state`의 `pid`가 실제 claude 프로세스인지 확인. |
-| 창은 오는데 다른 탭이 보임 | 제목 표식이 없으면 PID로 창만 찾습니다. hook을 설치하면 탭까지 찾아갑니다. |
-| 창이 앞으로 안 오고 작업표시줄만 깜빡임 | Windows의 포커스 가로채기 방지 때문입니다. 스크립트가 세 가지 방법을 차례로 시도하지만 막힐 수 있습니다. |
+| 키는 바뀌는데 눌러도 창이 안 옴 (키에 ⚠ 표시) | 플러그인 로그(`com.hbyi.agentdeck.sdPlugin/logs`)의 `could not focus ... exit N` 줄을 봅니다. 1 = 창을 못 찾음, 2 = 찾았지만 Windows가 전환을 거부. `POST /focus`로 같은 동작을 재현할 수 있습니다. hook을 설치했다면 창 제목에 `[cc:...]`가 보이는지, `CLAUDE_CODE_DISABLE_TERMINAL_TITLE`이 적용됐는지, 세션을 재시작했는지 확인. hook 없이 쓸 때는 `/state`의 `pid`가 실제 claude 프로세스인지 확인. |
+| 눌러도 아무 일이 없고 ⚠도 안 뜸 | 0.2.0까지는 탐색기에서 띄운 터미널의 부모 체인이 explorer.exe에서 끝나 바탕화면을 "포커스"하고 성공으로 끝났습니다. 0.2.1부터는 콘솔 제목으로 찾고 셸 프로세스는 건너뜁니다. 플러그인을 다시 띄웠는지 확인하세요. |
+| 창은 오는데 다른 탭이 보임 | 콘솔 제목이 같은 세션이 둘 이상이면(예: 둘 다 `✳ Claude Code`) 먼저 찾은 탭으로 갑니다. hook을 설치하면 `[cc:...]` 표식으로 구분합니다. |
+| 창이 앞으로 안 오고 작업표시줄만 깜빡임 | Windows의 포커스 가로채기 방지 때문입니다. 스크립트가 여러 방법을 차례로 시도하고, 그래도 안 되면 종료 코드 2로 끝나 키에 ⚠가 표시됩니다. |
 | 포트 충돌 | 플러그인 로그(`com.hbyi.agentdeck.sdPlugin/logs`)에 "already in use"가 있으면 `src/config.ts`의 포트와 hook의 `AGENT_DECK_PORT`를 같은 값으로 바꿉니다. |
 | 끝낸 세션이 키에 남아 있음 | 레지스트리로 찾은 세션은 프로세스가 사라지면 바로 지워집니다. hook만으로 알던(WSL, Codex) 세션은 12시간 동안 아무 이벤트가 없으면 자동으로 지워지고, 플러그인 재시작으로도 비울 수 있습니다. Stream Deck 7.0에서는 `npx streamdeck restart com.hbyi.agentdeck`가 돌고 있는 플러그인을 다시 띄우지 않을 때가 있으니, 그럴 땐 Stream Deck 앱 자체를 종료 후 다시 실행합니다. |
 | 플러그인이 로드되지 않음 | Stream Deck 앱 버전(7.0 이상)과 `%ProgramFiles%\Elgato\StreamDeck\node\`에 `node20.exe`가 있는지 확인. manifest의 `Nodejs.Version`은 `"20"`입니다. |
@@ -138,7 +140,7 @@ src/
   plugin.ts            진입점: 서버 시작, 레지스트리 감시, 액션 등록
   sessions.ts          hook 이벤트 + 레지스트리 → 세션 상태 (순서 뒤바뀐 이벤트 무시, 둘의 병합 규칙)
   registry.ts          ~/.claude/sessions/*.json 읽기, PID 생존 확인, 폴링
-  server.ts            127.0.0.1:39217, POST /claude, POST /codex, GET /state
+  server.ts            127.0.0.1:39217, POST /claude, POST /codex, POST /focus(디버그), GET /state
   deck.ts              키 ↔ 세션 배정, 그리기, 키 누름 처리, 500ms 애니메이션 tick
   render.ts            키 이미지(SVG): 세션 키, Next Waiting 키, System Monitor 키
   mascot.ts            픽셀 마스코트 장면(상태별 프레임) → SVG rect
@@ -147,7 +149,7 @@ src/
   actions/             Agent Session, Next Waiting, System Monitor 액션
 com.hbyi.agentdeck.sdPlugin/
   manifest.json
-  scripts/focus-window.ps1   제목 표식 / PID / 프로젝트 이름으로 창·탭 찾아서 앞으로
+  scripts/focus-window.ps1   제목 표식 / 콘솔 제목 / PID 부모 체인 / 프로젝트 이름으로 창·탭 찾아서 앞으로
   ui/session-slot.html       키 속성 창 (고정할 프로젝트)
 hooks/windows/         Windows 네이티브 Claude Code hook, Codex notify, 설치 스크립트
 hooks/wsl/             WSL Claude Code hook, Codex notify, 설치 스크립트

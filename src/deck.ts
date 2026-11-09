@@ -1,7 +1,7 @@
 import type { Action, KeyAction, SingletonAction } from "@elgato/streamdeck";
 
 import { TICK_MS } from "./config";
-import { focusSession } from "./focus";
+import { type FocusResult, focusSession } from "./focus";
 import { renderSlot, renderWaiting } from "./render";
 import type { Session, SessionStore } from "./sessions";
 
@@ -89,6 +89,13 @@ export class Deck {
 		await this.#jump(s, action);
 	}
 
+	/** Same as pressing the session's key, driven over HTTP (POST /focus); undefined for an unknown key. */
+	async focusKey(key: string): Promise<FocusResult | undefined> {
+		const s = this.store.get(key);
+		if (!s) return undefined;
+		return this.#jump(s);
+	}
+
 	async render(): Promise<void> {
 		const now = Date.now();
 		const keys = this.#slotKeys();
@@ -107,13 +114,16 @@ export class Deck {
 		await Promise.allSettled(tasks);
 	}
 
-	async #jump(s: Session, action: Action<any>): Promise<void> {
-		const ok = await focusSession(s);
+	async #jump(s: Session, action?: Action<any>): Promise<FocusResult> {
+		const r = await focusSession(s);
 		this.store.markSeen(s.key);
-		if (!ok) {
-			this.log.debug(`could not focus ${s.key} (${s.token ?? s.pid ?? s.label})`);
-			if (action.isKey()) await action.showAlert();
+		if (r.ok) {
+			this.log.info(`focused ${s.label} (${s.token ?? `pid ${s.pid}`}) in ${r.ms} ms`);
+		} else {
+			this.log.warn(`could not focus ${s.label} (${s.token ?? `pid ${s.pid}`}): exit ${r.code ?? "-"} after ${r.ms} ms ${r.detail}`);
+			if (action?.isKey()) await action.showAlert();
 		}
+		return r;
 	}
 
 	#slotKeys(): KeyAction<any>[] {

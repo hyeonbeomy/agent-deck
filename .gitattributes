@@ -1,0 +1,5 @@
+# Normalize line endings in the repo; keep shell scripts LF so they run under WSL
+# even when cloned on Windows with core.autocrlf=true.
+* text=auto
+*.sh text eol=lf
+*.png binary
