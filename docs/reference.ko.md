@@ -198,9 +198,3 @@ docs/                  이 상세 문서, README 사진, 설계 메모
 - **키로 권한 승인**: `PermissionRequest`를 HTTP hook으로 플러그인에 직접 보내고, 키 누름으로 allow/deny 응답을 돌려주면 됩니다. hook이 응답을 기다리는 동안 Claude가 멈춰 있으므로 타임아웃 처리가 핵심입니다.
 - **Mac 지원**: `focus.ts`에 macOS 분기만 추가하면 됩니다. tmux를 쓴다면 hook에서 `$TMUX_PANE`을 함께 보내고 `tmux switch-client`로 전환하는 방식이 가장 깔끔합니다.
 - **Stream Deck+ 다이얼**: 돌려서 세션 순환, 눌러서 이동.
-
-## 마스코트에 관해
-
-이 저장소의 마스코트는 CodeIsland의 `docs/images/mascots/claude.gif`를 보고 `src/mascot.ts`에 셀 단위로 다시 그린 것입니다. 타이핑 장면은 원본을 거의 그대로 따랐고, 자는 중·완료·대기·오류 장면은 이 프로젝트에서 추가했습니다. CodeIsland의 파일(이미지, 코드)을 복사해 넣은 것은 없지만 디자인상 2차 저작물로 볼 수 있어 MIT 라이선스 고지를 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)에 포함했습니다.
-
-이 캐릭터(주황색 네모 몸통에 눈 둘)는 Claude Code의 주황색 픽셀 캐릭터를 연상시키는 디자인입니다. 공개 배포 전에는 Anthropic의 브랜드 사용 정책을 확인하거나 캐릭터를 독자 디자인으로 바꾸는 것을 권합니다.

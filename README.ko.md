@@ -8,9 +8,9 @@ Stream Deck 키 하나에 Claude Code(또는 Codex) 세션 하나를 보여주�
   <img src="docs/images/agent-deck.jpg" alt="Stream Deck 위의 Agent Deck: CPU/RAM 키, 자는 세션, 작업 중인 세션" width="720">
 </p>
 
-> [CodeIsland](https://github.com/wxtsky/CodeIsland)에서 영감을 받았고, 마스코트 디자인도 거기서 가져왔습니다. [참고와 저작권](#참고와-저작권)을 보세요.
+[CodeIsland](https://github.com/wxtsky/CodeIsland)에서 영감을 받았습니다.
 
-## 키
+## 기능
 
 | 키 | 표시 | 누르면 |
 | --- | --- | --- |
@@ -30,14 +30,9 @@ Agent Session 키의 상태 표시:
 | 어두운 회색 | 자는 중 | `Zzz` | 이미 확인했거나 쉬는 중 |
 | 빨강 | X 눈 | `ERROR` | API 오류로 중단 |
 
-## 요구 사항
-
-- Windows 10/11, Stream Deck 앱 7.0 이상
-- Claude Code Windows 버전 2.1.119 이상. 어느 셸에서 실행해도 됩니다(cmd, PowerShell, Windows Terminal, Windows용 `claude`를 호출하는 WSL 셸).
-- 소스에서 빌드하려면 Node.js 20 이상과 git
-- Claude Here 키: WSL과 Windows Terminal. Claude App 키: Claude 데스크톱 앱.
-
 ## 설치
+
+Windows 10/11, Stream Deck 앱 7.0 이상, Claude Code Windows 버전 2.1.119 이상이 필요하고, 빌드에는 Node.js 20 이상과 git이 필요합니다. Claude Here 키는 WSL과 Windows Terminal이, Claude App 키는 Claude 데스크톱 앱이 추가로 필요합니다.
 
 ```powershell
 git clone https://github.com/hyeonbeomy/agent-deck.git
@@ -47,29 +42,16 @@ npm run build
 npm run link
 ```
 
-Stream Deck 앱을 완전히 종료했다가 다시 실행한 뒤, 액션 목록의 **Agent Deck** 카테고리에서 키를 끌어다 놓습니다. Windows에서 실행한 세션은 hook 없이도 알아서 키에 나타납니다.
+Stream Deck 앱을 완전히 종료했다가 다시 실행한 뒤, 액션 목록의 **Agent Deck** 카테고리에서 키를 끌어다 놓습니다.
 
 `npm run link`는 Windows 개발자 모드가 필요합니다. 실패하거나 Node.js가 없는 PC에 설치할 때는 `npm run pack`으로 만든 `.streamDeckPlugin` 파일을 더블클릭하세요.
 
 ## 사용법
 
-- **키 순서**: 세션은 열린 순서대로 왼쪽 위 Agent Session 키부터 채워집니다. 키를 한 프로젝트에 묶으려면 키 속성 창의 **고정할 프로젝트**에 폴더 이름을 적습니다.
+- **세션은 알아서 나타납니다.** 아무 터미널(cmd, PowerShell, Windows Terminal, Windows용 `claude`를 호출하는 WSL 셸)에서 `claude`를 실행하면, 열린 순서대로 왼쪽 위의 빈 Agent Session 키부터 채워집니다. 키를 누르면 그 터미널이 앞으로 옵니다.
+- **키를 한 프로젝트에 고정**하려면 키 속성 창의 **고정할 프로젝트**에 폴더 이름을 적습니다.
 - **Next Waiting**은 승인·질문 대기, 오류, 확인하지 않은 완료 순으로 돌아봅니다.
-- **Claude Here**는 포커스된 탐색기 창의 폴더(하위 폴더 하나를 선택했으면 그 폴더), 마우스 아래 탐색기 창, 바탕화면, 키 설정의 기본 폴더, 홈 폴더 순으로 고릅니다. 탐색기 창을 클릭한 뒤 키를 누르면 됩니다. WSL에 마운트되지 않은 위치(NAS 공유, 네트워크 드라이브, Google Drive)는 먼저 `/mnt/` 아래에 마운트합니다. 새 세션은 Claude의 폴더 신뢰 확인에 답한 뒤 키에 나타납니다.
+- **Claude Here**: 탐색기 창을 클릭한 뒤 키를 누릅니다. 그 창의 폴더(하위 폴더 하나를 선택했으면 그 폴더), 마우스 아래 탐색기 창, 바탕화면, 키 설정의 기본 폴더, 홈 폴더 순으로 고릅니다. WSL에 마운트되지 않은 위치(NAS 공유, 네트워크 드라이브, Google Drive)는 먼저 `/mnt/` 아래에 마운트합니다. 새 세션은 Claude의 폴더 신뢰 확인에 답한 뒤 키에 나타납니다.
 - **선택 사항인 hook**: `node hooks\windows\install.mjs`를 실행하면 승인과 질문의 구분, 실행 중인 툴 이름, 오류 상태가 추가되고, 제목이 같은 세션들도 구분합니다. 백업을 만든 뒤 `~/.claude/settings.json`을 수정하며 `--uninstall`로 되돌립니다. WSL 안에 설치한 Linux용 claude는 `bash hooks/wsl/install.sh`를 설치해야 키에 보입니다.
 
-그 밖의 내용은 [docs/reference.ko.md](docs/reference.ko.md)에 있습니다: 창 찾는 방식, Codex, hook 옵션, 디버그 엔드포인트, 전체 문제 해결 표, 소스 구조.
-
-## 문제 해결
-
-| 증상 | 할 일 |
-| --- | --- |
-| 키가 전혀 안 바뀜 | `npm run simulate`를 돌려 보고 `http://127.0.0.1:39217/state`를 엽니다. 세션이 잡히려면 Windows용 Claude Code 2.1.119 이상이 필요합니다. |
-| 키를 누르면 ⚠가 뜸 | `com.hbyi.agentdeck.sdPlugin/logs`의 플러그인 로그를 봅니다. `exit 1`은 창을 못 찾음, `exit 2`는 Windows가 전환을 거부한 것입니다. |
-| Claude Here가 홈 폴더에서 열림 | 탐색기 창에 포커스가 없었습니다. 창을 먼저 클릭하거나 키에 기본 폴더를 설정하세요. |
-| 플러그인이 안 뜨거나 새 빌드가 반영되지 않음 | Stream Deck 앱을 종료했다가 다시 실행합니다. |
-
-## 참고와 저작권
-
-- 아이디어와 **마스코트 디자인**은 macOS 노치에 AI 코딩 에이전트 상태를 띄워 주는 **[CodeIsland](https://github.com/wxtsky/CodeIsland)** (Copyright (c) 2026 wxtsky, MIT License)에서 가져왔습니다. 마스코트는 CodeIsland의 Claude 마스코트를 보고 코드(`src/mascot.ts`)로 다시 그린 것입니다. CodeIsland의 파일은 포함하지 않았고, 라이선스 고지는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다. 플러그인 코드는 새로 썼습니다.
-- 마스코트는 Claude Code의 주황색 픽셀 캐릭터를 연상시키는 디자인입니다. Claude, Claude Code는 Anthropic의, Codex는 OpenAI의, Stream Deck은 Elgato의 상표이며, 이 프로젝트는 이들 회사와 관련 없는 비공식 개인 프로젝트입니다.
+Codex와 문제 해결을 포함한 자세한 내용은 [docs/reference.ko.md](docs/reference.ko.md)에 있습니다.

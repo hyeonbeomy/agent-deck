@@ -198,9 +198,3 @@ docs/                  this reference, the README photo, design notes
 - **Approve permissions from a key**: send `PermissionRequest` to the plugin as an HTTP hook and answer allow / deny with a key press. Claude is blocked while the hook waits, so the timeout handling is the hard part.
 - **macOS**: add a macOS branch to `focus.ts`. With tmux, the cleanest way is to send `$TMUX_PANE` from the hook and switch with `tmux switch-client`.
 - **Stream Deck+ dials**: turn to cycle through sessions, press to jump.
-
-## Notes on the mascot
-
-The mascot in this repository was redrawn cell by cell in `src/mascot.ts` after CodeIsland's `docs/images/mascots/claude.gif`. The typing scene follows the original closely; the sleeping, done, waiting and error scenes were added here. No file from CodeIsland (image or code) was copied, but the design can be seen as a derivative work, so the MIT license notice is included in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
-
-The character (an orange box with two eyes) is reminiscent of Claude Code's own orange pixel character. Before distributing the plugin publicly, check Anthropic's brand guidelines or replace the character with a design of your own.
