@@ -10,7 +10,8 @@
 		"validate": "streamdeck validate com.hbyi.agentdeck.sdPlugin",
 		"pack": "streamdeck pack com.hbyi.agentdeck.sdPlugin",
 		"simulate": "node tools/simulate.mjs",
-		"test": "node --import tsx --test \"tests/**/*.test.ts\""
+		"test": "node --import tsx --test \"tests/**/*.test.ts\"",
+		"readme-keys": "node --import tsx tools/readme-keys.ts"
 	},
 	"type": "module",
 	"devDependencies": {

@@ -12,23 +12,33 @@ Stream Deck 키 하나에 Claude Code(또는 Codex) 세션 하나를 보여주�
 
 ## 기능
 
-| 키 | 표시 | 누르면 |
-| --- | --- | --- |
-| **Agent Session** | 세션 하나: 프로젝트 이름, 마스코트, 상태 | 그 세션의 터미널 창이나 탭으로 이동 |
-| **Next Waiting** | 나를 기다리는 세션 수 | 가장 급한 세션으로 이동 |
-| **System Monitor** | CPU, RAM 사용량 | 작업 관리자 열기 |
-| **Claude App** | Claude 데스크톱 앱 실행 여부 | 앱을 앞으로 가져오기, 꺼져 있으면 실행 |
-| **Claude Here** | 폴더 아이콘 | 포커스된 탐색기 폴더에서 `claude` 시작 (새 Windows Terminal 창 → WSL) |
+| | 키 | 표시 | 누르면 |
+| --- | --- | --- | --- |
+| <img src="docs/images/keys/session-working.svg" width="64" alt="Agent Session 키"> | **Agent Session** | 세션 하나: 프로젝트 이름, 마스코트, 상태 | 그 세션의 터미널 창이나 탭으로 이동 |
+| <img src="docs/images/keys/next-waiting.svg" width="64" alt="Next Waiting 키"> | **Next Waiting** | 나를 기다리는 세션 수 | 가장 급한 세션으로 이동 |
+| <img src="docs/images/keys/system-monitor.svg" width="64" alt="System Monitor 키"> | **System Monitor** | CPU, RAM 사용량 | 작업 관리자 열기 |
+| <img src="docs/images/keys/claude-app-running.svg" width="64" alt="Claude App 키"> | **Claude App** | Claude 데스크톱 앱 실행 여부 | 앱을 앞으로 가져오기, 꺼져 있으면 실행 |
+| <img src="docs/images/keys/claude-here.svg" width="64" alt="Claude Here 키"> | **Claude Here** | 프롬프트가 그려진 폴더 | 포커스된 탐색기 폴더에서 `claude` 시작 (새 Windows Terminal 창 → WSL) |
 
 Agent Session 키의 상태 표시:
 
-| 색 | 마스코트 | 글자 | 의미 |
-| --- | --- | --- | --- |
-| 파랑 | 타이핑 | `WORKING 1:23` | 작업 중 |
-| 주황, 깜빡임 | 팔 흔들기, `!` 또는 `?` 말풍선 | `APPROVE?` / `QUESTION` / `NEEDS YOU` | 나를 기다림 |
-| 초록 | 두 팔 들기, 체크 표시 | `DONE` | 턴 종료 |
-| 어두운 회색 | 자는 중 | `Zzz` | 이미 확인했거나 쉬는 중 |
-| 빨강 | X 눈 | `ERROR` | API 오류로 중단 |
+| 키 | 글자 | 의미 |
+| --- | --- | --- |
+| <img src="docs/images/keys/session-working.svg" width="72" alt="작업 중"> | `WORKING 1:23` | 작업 중 |
+| <img src="docs/images/keys/session-approve.svg" width="72" alt="승인 대기"> | `APPROVE?` / `NEEDS YOU` | 승인이나 입력을 기다림 (깜빡임) |
+| <img src="docs/images/keys/session-question.svg" width="72" alt="질문"> | `QUESTION` | Claude가 질문 중 (깜빡임) |
+| <img src="docs/images/keys/session-done.svg" width="72" alt="완료"> | `DONE` | 턴 종료 |
+| <img src="docs/images/keys/session-asleep.svg" width="72" alt="자는 중"> | `Zzz` | 이미 확인했거나 쉬는 중 |
+| <img src="docs/images/keys/session-error.svg" width="72" alt="오류"> | `ERROR` | API 오류로 중단 |
+
+다른 키의 상태 표시:
+
+| 키 | 의미 |
+| --- | --- |
+| <img src="docs/images/keys/next-clear.svg" width="72" alt="Next Waiting, 대기 없음"> | Next Waiting: 기다리는 세션 없음 |
+| <img src="docs/images/keys/next-waiting.svg" width="72" alt="Next Waiting, 두 세션 대기"> | Next Waiting: 두 세션이 대기 중, 가장 급한 세션 이름 표시 |
+| <img src="docs/images/keys/claude-app-running.svg" width="72" alt="Claude App, 실행 중"> | Claude App: 데스크톱 앱 실행 중 |
+| <img src="docs/images/keys/claude-app-off.svg" width="72" alt="Claude App, 꺼짐"> | Claude App: 데스크톱 앱 꺼짐 |
 
 ## 설치
 
