@@ -1,5 +1,7 @@
 # Agent Deck
 
+**English** | [한국어](README.ko.md)
+
 A Stream Deck plugin for Windows that shows one Claude Code (or Codex) session per key.
 A pixel mascot on each key acts out what the session is doing (working, waiting for approval, done, sleeping, error), and pressing the key jumps straight to the terminal window the session runs in, down to the right Windows Terminal tab. It also comes with a CPU / RAM key, a key that brings the Claude desktop app to the front, and a key that starts Claude in the Explorer folder you are looking at.
 
