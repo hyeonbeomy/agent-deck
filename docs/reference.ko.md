@@ -34,9 +34,10 @@ CPU 사용률(막대 + 최근 36초 그래프)과 RAM 사용률(막대 + 사용/
 
 - **폴더**: ① 포커스된 파일 탐색기 창의 현재 폴더(하위 폴더 하나만 선택했으면 그 폴더) ② 마우스 커서 아래의 탐색기 창 ③ 바탕화면이면 바탕화면 폴더 ④ 키 설정의 기본 폴더 ⑤ 사용자 홈 폴더. 빠른 액세스나 내 PC 같은 가상 위치는 건너뜁니다. Windows 11 탐색기 탭은 UI Automation으로 구분합니다.
 - **자동 마운트**: WSL은 고정 로컬 드라이브만 자동으로 마운트합니다. WSL이 폴더 경로를 변환하지 못하면(`wslpath` 실패) 드라이브나 공유를 먼저 `drvfs`로 마운트합니다. `wsl -u root`로 실행하므로 암호를 묻지 않습니다. 드라이브 `X:\...`는 `/mnt/x`, 공유 `\\서버\공유\...`는 `/mnt/서버-공유`에 마운트하며, WSL이 종료될 때까지 유지됩니다.
-- **실행 명령**: `wt.exe -w 0 new-tab --title "claude: <폴더>" wsl.exe --cd <리눅스 경로> -- bash -lic claude`. Windows Terminal이 없으면 일반 콘솔 창에서 `wsl.exe`를 실행합니다.
-- **설정**: 기본 폴더, WSL 배포판(비우면 기본 배포판), 터미널 프로필(새 탭의 모양용), 새 창에서 열기, claude가 끝나도 셸 열어 두기.
-- 새 세션은 Claude가 폴더 신뢰 확인을 통과한 뒤 Agent Session 키에 나타납니다. 그 전에는 Claude Code가 세션을 기록하지 않기 때문입니다.
+- **실행 명령**: `wt.exe -w new new-tab --title "claude: <폴더>" wsl.exe --cd <리눅스 경로> -- bash -lic claude`. 기본 프로필 모양의 새 Windows Terminal 창이 열립니다. Windows Terminal이 없으면 일반 콘솔 창에서 `wsl.exe`를 실행합니다.
+- **환경**: 터미널은 플러그인의 환경이 아니라 로그온 직후와 같은 깨끗한 환경(레지스트리의 시스템·사용자 변수)으로 시작합니다. 그러지 않으면 Stream Deck을 띄운 쪽의 환경변수가 새 터미널마다 따라 들어갑니다.
+- **설정**: 기본 폴더, WSL 배포판(비우면 기본 배포판), 터미널 프로필(새 창의 모양용), 새 창 대신 마지막에 쓴 창의 탭으로 열기, claude가 끝나도 셸 열어 두기.
+- 새 세션은 1~2초 안에 Agent Session 키에 나타납니다. Claude가 폴더 신뢰 확인을 띄워 둔 상태에서도 나타납니다.
 
 ## 창을 찾는 순서
 
@@ -136,7 +137,7 @@ npm run simulate -- end   # 가짜 세션 제거
 | 창이 앞으로 안 오고 작업표시줄만 깜빡임 | Windows의 포커스 가로채기 방지 때문입니다. 스크립트가 여러 방법을 차례로 시도하고, 그래도 안 되면 종료 코드 2로 끝나 키에 ⚠가 표시됩니다. |
 | Claude Here가 엉뚱한 폴더(홈)에서 열림 | 누르는 순간 탐색기 창이 포커스돼 있지 않았거나 가상 폴더(빠른 액세스, 내 PC)였습니다. 로그의 `claude started: folder=... source=...`에서 `source`가 `focused` / `cursor` / `default` / `home` 중 무엇인지 확인하고, 탐색기 창을 한 번 클릭한 뒤 누르거나 기본 폴더를 설정하세요. |
 | Claude Here에 ⚠ 표시 | 로그의 `could not start claude here` 줄에 이유가 있습니다. 대부분 마운트 실패입니다(NAS가 꺼져 있음, Google Drive 미실행). `wsl -u root -e mount -t drvfs X: /mnt/x`를 직접 실행하면 원래 오류 메시지를 볼 수 있습니다. |
-| Claude Here로 열었는데 세션 키가 안 생김 | Claude가 폴더 신뢰 확인 화면에서 기다리는 중입니다. 확인을 통과하면 1초 안에 키에 나타납니다. |
+| Claude Here로 열었는데 세션 키가 안 생기거나, 새 터미널이 흑백으로 나옴 | 0.3.0까지는 새 터미널이 플러그인의 환경을 그대로 물려받았습니다. Stream Deck을 Claude Code 세션 안의 셸에서 띄운 경우, 새 claude가 그 세션의 하위 세션으로 떠서 등록되지 않았고(키가 안 생김) `NO_COLOR`도 따라 들어갔습니다. 0.3.1부터는 깨끗한 로그온 환경으로 터미널을 띄웁니다. 그래도 생기면 Stream Deck을 종료하고 시작 메뉴에서 다시 실행하세요. |
 | Claude App에 ⚠ 표시 | Claude 데스크톱 앱이 설치돼 있지 않거나, 실행 후 10초 안에 창이 뜨지 않았습니다. 로그의 `could not bring up the Claude app` 줄을 확인하세요. |
 | 포트 충돌 | 플러그인 로그에 "already in use"가 있으면 `src/config.ts`의 포트와 hook의 `AGENT_DECK_PORT`를 같은 값으로 바꿉니다. |
 | 열어 둔 적 없는 세션이 키에 뜸 | 0.2.1까지는 Claude 데스크톱 앱이 백그라운드로 유지하는 Claude Code 프로세스도 세션으로 잡혔습니다. 지금은 제외합니다. 그래도 뜨면 `http://127.0.0.1:39217/state`에서 그 세션의 `pid`를 보고, `~/.claude/sessions/<pid>.json`의 `entrypoint` 값을 확인해 `HIDDEN_ENTRYPOINTS`에 추가하세요. |
@@ -185,7 +186,7 @@ com.hbyi.agentdeck.sdPlugin/
   scripts/claude-app.ps1     Claude 데스크톱 앱 창 포커스, 없으면 실행
   scripts/claude-here.ps1    탐색기 폴더 결정 → 필요하면 WSL 마운트 → wt/wsl로 claude 실행
   ui/session-slot.html       Agent Session 키 속성 창 (고정할 프로젝트)
-  ui/claude-here.html        Claude Here 키 속성 창 (기본 폴더, 배포판, 프로필, 새 창, 셸 유지)
+  ui/claude-here.html        Claude Here 키 속성 창 (기본 폴더, 배포판, 프로필, 탭으로 열기, 셸 유지)
 hooks/windows/         Windows 네이티브 Claude Code hook, Codex notify, 설치 스크립트
 hooks/wsl/             WSL Claude Code hook, Codex notify, 설치 스크립트
 tests/                 node:test 단위 테스트 (npm test)

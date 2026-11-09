@@ -59,7 +59,13 @@ if (-not $target) {
     exit 1
 }
 if ($DryRun) { Write-Output "launch=$target"; exit 0 }
-Start-Process $target
+if ($target -like "*.exe") {
+    # A plain executable would inherit the plugin's environment; give it a fresh one.
+    Start-Clean $target @()
+} else {
+    # Store apps and the claude:// handler are activated by the shell, not as our child.
+    Start-Process $target
+}
 
 for ($i = 0; $i -lt 50; $i++) {
     Start-Sleep -Milliseconds 200

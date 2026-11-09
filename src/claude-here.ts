@@ -8,8 +8,8 @@ export type ClaudeHereSettings = {
 	distro?: string;
 	/** Windows Terminal profile name for the new tab's looks; empty = default profile. */
 	profile?: string;
-	/** Open a new Windows Terminal window instead of a tab in the last used one. */
-	newWindow?: boolean;
+	/** Open a tab in the last used Windows Terminal window instead of a new window. */
+	tab?: boolean;
 	/** Keep the shell open after claude exits. */
 	keepShell?: boolean;
 };
@@ -26,7 +26,7 @@ export function claudeHereArgs(s: ClaudeHereSettings | undefined): string[] {
 	text("-Distro", s.distro);
 	// -Profile would shadow PowerShell's automatic $PROFILE variable.
 	text("-TerminalProfile", s.profile);
-	if (s.newWindow) args.push("-NewWindow");
+	if (s.tab) args.push("-Tab");
 	if (s.keepShell) args.push("-KeepShell");
 	return args;
 }

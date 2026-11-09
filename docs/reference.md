@@ -34,9 +34,10 @@ CPU load (bar plus a graph of the last 36 seconds) and RAM use (bar plus used / 
 
 - **Folder**: ① the current folder of the focused File Explorer window, or the sub-folder if exactly one is selected ② the Explorer window under the mouse cursor ③ the Desktop folder when the desktop is focused ④ the default folder from the key's settings ⑤ your home folder. Virtual locations such as Quick access or This PC are skipped. Windows 11 Explorer tabs are told apart through UI Automation.
 - **Automatic mounting**: WSL only mounts fixed local drives on its own. When WSL cannot translate the folder (`wslpath` fails), the drive or share is mounted first with `drvfs`, through `wsl -u root`, so no password is asked. A drive `X:\...` goes to `/mnt/x`, a share `\\server\share\...` to `/mnt/server-share`. The mount lasts until WSL shuts down.
-- **Command**: `wt.exe -w 0 new-tab --title "claude: <folder>" wsl.exe --cd <linux path> -- bash -lic claude`. Without Windows Terminal, `wsl.exe` is started in a plain console window.
-- **Settings** (labels are in Korean): default folder (기본 폴더), WSL distribution (WSL 배포판, empty = default), terminal profile for the tab's looks (터미널 프로필), open a new window instead of a tab (새 창), keep the shell open after claude exits (셸 유지).
-- The new session appears on an Agent Session key once Claude is past its "trust this folder?" prompt; Claude Code does not record the session before that.
+- **Command**: `wt.exe -w new new-tab --title "claude: <folder>" wsl.exe --cd <linux path> -- bash -lic claude`, a new Windows Terminal window with your default profile's looks. Without Windows Terminal, `wsl.exe` is started in a plain console window.
+- **Environment**: the terminal is started with a fresh logon environment (the machine and user variables from the registry), not with the plugin's own. Otherwise whatever started Stream Deck would leak into every new terminal.
+- **Settings** (labels are in Korean): default folder (기본 폴더), WSL distribution (WSL 배포판, empty = default), terminal profile for the window's looks (터미널 프로필), open a tab in the last used window instead of a new window (탭으로 열기), keep the shell open after claude exits (셸 유지).
+- The new session appears on an Agent Session key within a second or two, also while Claude is still showing its "trust this folder?" prompt.
 
 ## How the window is found
 
@@ -136,7 +137,7 @@ There are two ways the plugin learns about sessions, and both feed the same sess
 | The window does not come forward, the taskbar button only flashes | Windows' focus-stealing prevention. The script tries several methods in turn; if all fail it exits with code 2 and the key shows ⚠. |
 | Claude Here opens in the wrong folder (home) | No Explorer window was focused when you pressed the key, or it showed a virtual folder (Quick access, This PC). In the log line `claude started: folder=... source=...`, `source` is one of `focused` / `cursor` / `default` / `home`. Click the Explorer window once before pressing, or set a default folder. |
 | ⚠ on Claude Here | The log line `could not start claude here` gives the reason, usually a failed mount (NAS switched off, Google Drive not running). Run `wsl -u root -e mount -t drvfs X: /mnt/x` yourself to see the original error. |
-| Opened with Claude Here but no session key appears | Claude is waiting at its "trust this folder?" prompt. The key appears within a second after you answer it. |
+| Opened with Claude Here but no session key appears, or the new terminal has no colours | Up to 0.3.0 the new terminal inherited the plugin's environment. If Stream Deck itself had been started from a shell inside a Claude Code session, the new claude ran as that session's child (so it never registered and got no key) and with `NO_COLOR` set. Since 0.3.1 the terminal gets a fresh logon environment. If it still happens, quit Stream Deck and start it from the Start menu. |
 | ⚠ on Claude App | The Claude desktop app is not installed, or no window appeared within 10 seconds of starting it. See `could not bring up the Claude app` in the log. |
 | Port conflict | If the plugin log says "already in use", change the port in `src/config.ts` and set the hooks' `AGENT_DECK_PORT` to the same value. |
 | A session you never opened shows on a key | Up to 0.2.1, the Claude Code processes the Claude desktop app keeps in the background were picked up as sessions. They are now left out. If one still shows, look up its `pid` at `http://127.0.0.1:39217/state`, read the `entrypoint` value in `~/.claude/sessions/<pid>.json`, and add it to `HIDDEN_ENTRYPOINTS`. |
@@ -185,7 +186,7 @@ com.hbyi.agentdeck.sdPlugin/
   scripts/claude-app.ps1     focuses the Claude desktop app window, starts the app if needed
   scripts/claude-here.ps1    picks the Explorer folder -> mounts it in WSL if needed -> starts claude with wt/wsl
   ui/session-slot.html       property inspector of the Agent Session key (pinned project)
-  ui/claude-here.html        property inspector of the Claude Here key (default folder, distribution, profile, new window, keep shell)
+  ui/claude-here.html        property inspector of the Claude Here key (default folder, distribution, profile, open as tab, keep shell)
 hooks/windows/         native Windows Claude Code hook, Codex notify, installer
 hooks/wsl/             WSL Claude Code hook, Codex notify, installer
 tests/                 node:test unit tests (npm test)

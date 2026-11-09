@@ -18,11 +18,13 @@
       share  \\server\share\.. ->  mount -t drvfs \\server\share /mnt/server-share
   The mount lasts until WSL shuts down.
 
-  Then a Windows Terminal tab (or window with -NewWindow) runs WSL in that folder and starts
-  claude:  wt.exe -w 0 new-tab --title "claude: <name>" [-p <profile>]
+  Then a new Windows Terminal window (or a tab in the last used window with -Tab) runs WSL in
+  that folder and starts claude:
+           wt.exe -w new new-tab --title "claude: <name>" [-p <profile>]
              wsl.exe [-d <distro>] --cd <linux path> -- bash -lic claude
   -KeepShell leaves the shell open after claude exits. Without wt.exe, wsl.exe is started in a
-  plain console window.
+  plain console window. The terminal gets a fresh logon environment, not the plugin's (see
+  Start-Clean), so it looks and behaves like one opened from the Start menu.
 
   -DryRun prints the folder, the mount that would be made and the command, and starts nothing.
   Exit codes: 0 = started, 1 = could not start (folder unreachable in WSL, mount failed).
@@ -32,7 +34,7 @@ param(
     [string]$DefaultFolder = "",
     [string]$Distro = "",
     [string]$TerminalProfile = "",
-    [switch]$NewWindow,
+    [switch]$Tab,
     [switch]$KeepShell,
     [switch]$DryRun
 )
@@ -229,16 +231,17 @@ $wslArgs = @($wslBase + @("--cd", $linux, "--", "bash", "-lic", $inner)) | ForEa
 Write-Output "folder=$folder source=$source wsl=$linux$note"
 $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
 if ($wt) {
-    $window = "0"
-    if ($NewWindow) { $window = "new" }
+    $window = "new"
+    if ($Tab) { $window = "0" }
     $wtArgs = @("-w", $window, "new-tab", "--title", (Quote-Arg $title))
     if ($TerminalProfile) { $wtArgs += @("-p", (Quote-Arg $TerminalProfile)) }
     $wtArgs += @("wsl.exe") + $wslArgs
     if ($DryRun) { Write-Output ("wt.exe " + ($wtArgs -join " ")); exit 0 }
-    Start-Process -FilePath $wt.Source -ArgumentList $wtArgs
+    Start-Clean $wt.Source $wtArgs
 } else {
     if ($DryRun) { Write-Output ("wsl.exe " + ($wslArgs -join " ")); exit 0 }
-    Start-Process -FilePath "wsl.exe" -ArgumentList $wslArgs
+    # "start" gives wsl.exe a console window of its own; this script has none to share.
+    Start-Clean "cmd.exe" (@("/c", "start", '""', "wsl.exe") + $wslArgs)
 }
 
 # Bring the new tab forward (best effort): it carries our title until Claude Code renames it.

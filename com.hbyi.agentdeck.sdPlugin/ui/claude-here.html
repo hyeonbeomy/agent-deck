@@ -16,7 +16,7 @@
 
 	<body>
 		<div class="hint">
-			키를 누르면 포커스된 탐색기 창의 폴더(하위 폴더 하나를 선택해 두었으면 그 폴더)에서 Windows Terminal → WSL → <code>claude</code>를 띄웁니다.
+			키를 누르면 포커스된 탐색기 창의 폴더(하위 폴더 하나를 선택해 두었으면 그 폴더)에서 새 Windows Terminal 창 → WSL → <code>claude</code>를 띄웁니다.
 			탐색기가 아니면 마우스 아래의 탐색기 창, 바탕화면, 아래 기본 폴더 순으로 고릅니다.<br />
 			WSL에 마운트되지 않은 위치(NAS 공유, 네트워크 드라이브, Google Drive)는 먼저 <code>/mnt/…</code>에 마운트한 뒤 엽니다.
 		</div>
@@ -29,8 +29,8 @@
 		<sdpi-item label="터미널 프로필">
 			<sdpi-textfield setting="profile" placeholder="예: Ubuntu (탭 모양용, 비워도 됨)"></sdpi-textfield>
 		</sdpi-item>
-		<sdpi-item label="새 창">
-			<sdpi-checkbox setting="newWindow" label="탭 대신 새 Windows Terminal 창에서 열기"></sdpi-checkbox>
+		<sdpi-item label="탭으로 열기">
+			<sdpi-checkbox setting="tab" label="새 창 대신 마지막에 쓴 Windows Terminal 창의 탭으로 열기"></sdpi-checkbox>
 		</sdpi-item>
 		<sdpi-item label="셸 유지">
 			<sdpi-checkbox setting="keepShell" label="claude가 끝나도 셸을 열어 두기"></sdpi-checkbox>

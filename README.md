@@ -18,7 +18,7 @@ Inspired by [CodeIsland](https://github.com/wxtsky/CodeIsland).
 | **Next Waiting** | How many sessions are waiting for you | Jump to the most urgent one |
 | **System Monitor** | CPU and RAM use | Open Task Manager |
 | **Claude App** | Whether the Claude desktop app is running | Bring it to the front, starting it if needed |
-| **Claude Here** | A folder icon | Start `claude` in the focused Explorer folder (Windows Terminal → WSL) |
+| **Claude Here** | A folder icon | Start `claude` in the focused Explorer folder (new Windows Terminal window → WSL) |
 
 States on an Agent Session key:
 
@@ -51,7 +51,7 @@ Quit the Stream Deck app completely and start it again, then drag the keys from 
 - **Sessions appear by themselves.** Start `claude` in any terminal (cmd, PowerShell, Windows Terminal, or a WSL shell that calls the Windows `claude`). It takes the next free Agent Session key, filling from the top left in the order sessions were started. Press the key to bring that terminal to the front.
 - **Pin a key to a project** by typing the folder name into the key's 고정할 프로젝트 (pinned project) field.
 - **Next Waiting** goes through approvals and questions first, then errors, then finished turns you have not looked at.
-- **Claude Here**: click an Explorer window, then press the key. It uses that window's folder (or its one selected sub-folder), then the Explorer window under the cursor, the desktop, the default folder from the key's settings, and last your home folder. Locations WSL has not mounted (NAS shares, network drives, Google Drive) are mounted under `/mnt/` first. The new session gets its key once you answer Claude's "trust this folder?" prompt.
+- **Claude Here**: click an Explorer window, then press the key. It uses that window's folder (or its one selected sub-folder), then the Explorer window under the cursor, the desktop, the default folder from the key's settings, and last your home folder. Locations WSL has not mounted (NAS shares, network drives, Google Drive) are mounted under `/mnt/` first. A new Windows Terminal window opens with `claude` running in that folder, and the session gets its own key a second or two later.
 - **Optional hook**: `node hooks\windows\install.mjs` adds the approval / question distinction, tool names and the error state, and tells sessions with identical titles apart. It edits `~/.claude/settings.json` after writing a backup; `--uninstall` removes it. A Linux claude installed inside WSL needs `bash hooks/wsl/install.sh` to be seen at all.
 
 More detail, including Codex and troubleshooting, is in [docs/reference.md](docs/reference.md).

@@ -3,8 +3,10 @@
     . "$PSScriptRoot\agent-deck-win.ps1"
 
   [AgentDeckWin]  window lookup (by title, by process), focusing, console title of a process,
-                  foreground window, window under the mouse cursor, window class name
+                  foreground window, window under the mouse cursor, window class name,
+                  a fresh logon environment
   Try-Focus       focus a window whose title contains a needle, else a Windows Terminal tab
+  Start-Clean     start a program with a fresh logon environment
   Get-TitleNeedle strip Claude Code's spinner glyph from a console title
 
   Keep this file ASCII-only: Windows PowerShell 5.1 reads BOM-less scripts as ANSI.
@@ -12,6 +14,7 @@
 
 Add-Type -TypeDefinition @"
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -43,6 +46,11 @@ public static class AgentDeckWin {
     [DllImport("kernel32.dll")] private static extern bool FreeConsole();
     [DllImport("kernel32.dll")] private static extern bool AttachConsole(uint pid);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern uint GetConsoleTitle(StringBuilder text, uint max);
+    [DllImport("kernel32.dll")] private static extern IntPtr GetCurrentProcess();
+    [DllImport("kernel32.dll")] private static extern bool CloseHandle(IntPtr handle);
+    [DllImport("advapi32.dll", SetLastError = true)] private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
+    [DllImport("userenv.dll", SetLastError = true)] private static extern bool CreateEnvironmentBlock(out IntPtr environment, IntPtr token, bool inherit);
+    [DllImport("userenv.dll", SetLastError = true)] private static extern bool DestroyEnvironmentBlock(IntPtr environment);
 
     private static readonly string[] TerminalClasses = {
         "ConsoleWindowClass",            // classic cmd / conhost window
@@ -128,6 +136,33 @@ public static class AgentDeckWin {
         return n == 0 ? "" : sb.ToString();
     }
 
+    // The environment a program started from the Start menu gets (machine + user variables from
+    // the registry), with nothing this process inherited from whoever started it. Empty on failure.
+    public static Dictionary<string, string> FreshEnvironment() {
+        Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        IntPtr token;
+        if (!OpenProcessToken(GetCurrentProcess(), 0x000A, out token)) return result; // TOKEN_QUERY | TOKEN_DUPLICATE
+        try {
+            IntPtr block;
+            if (!CreateEnvironmentBlock(out block, token, false)) return result;
+            try {
+                IntPtr p = block;
+                while (true) {
+                    string entry = Marshal.PtrToStringUni(p);
+                    if (string.IsNullOrEmpty(entry)) break;
+                    int eq = entry.IndexOf('=', 1); // names like "=C:" start with '='
+                    if (eq > 0) result[entry.Substring(0, eq)] = entry.Substring(eq + 1);
+                    p = new IntPtr(p.ToInt64() + (entry.Length + 1) * 2);
+                }
+            } finally {
+                DestroyEnvironmentBlock(block);
+            }
+        } finally {
+            CloseHandle(token);
+        }
+        return result;
+    }
+
     // The foreground switch is asynchronous; give it a moment before judging.
     private static bool WaitForeground(IntPtr h) {
         for (int i = 0; i < 15; i++) {
@@ -208,6 +243,26 @@ function Try-Focus([string]$needle, [bool]$terminalsOnly) {
         return 2
     }
     return Select-TerminalTab $needle
+}
+
+# Start a program with the environment of a fresh logon instead of this process's own.
+# The plugin inherits its environment from whatever started Stream Deck. If that was a shell
+# inside a Claude Code session, variables such as NO_COLOR and CLAUDE_CODE_CHILD_SESSION would
+# travel on into every terminal opened here: no colours, and a claude that registers as another
+# session's child and therefore never gets a key. $arguments must already be quoted.
+function Start-Clean([string]$file, [string[]]$arguments) {
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $file
+    $psi.Arguments = ($arguments -join " ")
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.WorkingDirectory = $env:USERPROFILE
+    $fresh = [AgentDeckWin]::FreshEnvironment()
+    if ($fresh.Count -gt 0) {
+        $psi.Environment.Clear()
+        foreach ($name in $fresh.Keys) { $psi.Environment[$name] = $fresh[$name] }
+    }
+    [void][System.Diagnostics.Process]::Start($psi)
 }
 
 # Claude Code titles its console "<spinner> <summary>" and the spinner glyph keeps changing

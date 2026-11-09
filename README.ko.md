@@ -18,7 +18,7 @@ Stream Deck 키 하나에 Claude Code(또는 Codex) 세션 하나를 보여주�
 | **Next Waiting** | 나를 기다리는 세션 수 | 가장 급한 세션으로 이동 |
 | **System Monitor** | CPU, RAM 사용량 | 작업 관리자 열기 |
 | **Claude App** | Claude 데스크톱 앱 실행 여부 | 앱을 앞으로 가져오기, 꺼져 있으면 실행 |
-| **Claude Here** | 폴더 아이콘 | 포커스된 탐색기 폴더에서 `claude` 시작 (Windows Terminal → WSL) |
+| **Claude Here** | 폴더 아이콘 | 포커스된 탐색기 폴더에서 `claude` 시작 (새 Windows Terminal 창 → WSL) |
 
 Agent Session 키의 상태 표시:
 
@@ -51,7 +51,7 @@ Stream Deck 앱을 완전히 종료했다가 다시 실행한 뒤, 액션 목록
 - **세션은 알아서 나타납니다.** 아무 터미널(cmd, PowerShell, Windows Terminal, Windows용 `claude`를 호출하는 WSL 셸)에서 `claude`를 실행하면, 열린 순서대로 왼쪽 위의 빈 Agent Session 키부터 채워집니다. 키를 누르면 그 터미널이 앞으로 옵니다.
 - **키를 한 프로젝트에 고정**하려면 키 속성 창의 **고정할 프로젝트**에 폴더 이름을 적습니다.
 - **Next Waiting**은 승인·질문 대기, 오류, 확인하지 않은 완료 순으로 돌아봅니다.
-- **Claude Here**: 탐색기 창을 클릭한 뒤 키를 누릅니다. 그 창의 폴더(하위 폴더 하나를 선택했으면 그 폴더), 마우스 아래 탐색기 창, 바탕화면, 키 설정의 기본 폴더, 홈 폴더 순으로 고릅니다. WSL에 마운트되지 않은 위치(NAS 공유, 네트워크 드라이브, Google Drive)는 먼저 `/mnt/` 아래에 마운트합니다. 새 세션은 Claude의 폴더 신뢰 확인에 답한 뒤 키에 나타납니다.
+- **Claude Here**: 탐색기 창을 클릭한 뒤 키를 누릅니다. 그 창의 폴더(하위 폴더 하나를 선택했으면 그 폴더), 마우스 아래 탐색기 창, 바탕화면, 키 설정의 기본 폴더, 홈 폴더 순으로 고릅니다. WSL에 마운트되지 않은 위치(NAS 공유, 네트워크 드라이브, Google Drive)는 먼저 `/mnt/` 아래에 마운트합니다. 새 Windows Terminal 창이 열려 그 폴더에서 `claude`가 실행되고, 1~2초 뒤 세션이 키에 나타납니다.
 - **선택 사항인 hook**: `node hooks\windows\install.mjs`를 실행하면 승인과 질문의 구분, 실행 중인 툴 이름, 오류 상태가 추가되고, 제목이 같은 세션들도 구분합니다. 백업을 만든 뒤 `~/.claude/settings.json`을 수정하며 `--uninstall`로 되돌립니다. WSL 안에 설치한 Linux용 claude는 `bash hooks/wsl/install.sh`를 설치해야 키에 보입니다.
 
 Codex와 문제 해결을 포함한 자세한 내용은 [docs/reference.ko.md](docs/reference.ko.md)에 있습니다.
