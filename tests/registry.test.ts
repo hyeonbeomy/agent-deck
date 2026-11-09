@@ -62,3 +62,17 @@ test("parseRegistryFile keeps unknown status values and defaults timestamps", ()
 	assert.equal(e?.statusUpdatedAt, 0);
 	assert.equal(e?.startedAt, 0);
 });
+
+test("parseRegistryFile skips sessions hosted by the Claude desktop app, which keeps them alive in the background", () => {
+	const hosted = JSON.parse(sample);
+	hosted.entrypoint = "claude-desktop";
+	hosted.hostSessionId = "local_123";
+	assert.equal(parseRegistryFile("29144.json", JSON.stringify(hosted)), undefined);
+});
+
+test("parseRegistryFile keeps terminal sessions and entries without an entrypoint", () => {
+	assert.ok(parseRegistryFile("46756.json", sample));
+	const old = JSON.parse(sample);
+	delete old.entrypoint;
+	assert.ok(parseRegistryFile("46756.json", JSON.stringify(old)));
+});

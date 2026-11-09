@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { REGISTRY_POLL_MS } from "./config";
+import { HIDDEN_ENTRYPOINTS, REGISTRY_POLL_MS } from "./config";
 import type { SessionStore } from "./sessions";
 
 /**
@@ -29,7 +29,7 @@ export function registryDir(): string {
 	return path.join(base, "sessions");
 }
 
-/** Parse one registry file. Returns undefined for anything that is not an interactive session. */
+/** Parse one registry file. Returns undefined for anything that is not an interactive terminal session. */
 export function parseRegistryFile(fileName: string, text: string): RegistryEntry | undefined {
 	if (!fileName.endsWith(".json")) return undefined;
 	let data: unknown;
@@ -47,6 +47,8 @@ export function parseRegistryFile(fileName: string, text: string): RegistryEntry
 	if (typeof sessionId !== "string" || sessionId.length === 0) return undefined;
 	// Headless (-p) and SDK sessions have no terminal to jump to and no turn-taking to show.
 	if (typeof d.kind === "string" && d.kind !== "interactive") return undefined;
+	// Sessions another app hosts in its own UI (also "interactive") are not terminal sessions.
+	if (typeof d.entrypoint === "string" && HIDDEN_ENTRYPOINTS.includes(d.entrypoint)) return undefined;
 
 	return {
 		pid,
