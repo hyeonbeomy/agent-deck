@@ -1,6 +1,6 @@
 {
 	"Name": "Agent Deck",
-	"Version": "0.2.1.0",
+	"Version": "0.3.0.0",
 	"Author": "HyeonBeom Yi",
 	"Actions": [
 		{
@@ -45,6 +45,37 @@
 			"States": [
 				{
 					"Image": "imgs/actions/sysmon/key",
+					"ShowTitle": false
+				}
+			]
+		},
+		{
+			"Name": "Claude App",
+			"UUID": "com.hbyi.agentdeck.claudeapp",
+			"Icon": "imgs/actions/claudeapp/icon",
+			"Tooltip": "Brings the Claude desktop app to the front, starting it if it is not running.",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/claudeapp/key",
+					"ShowTitle": false
+				}
+			]
+		},
+		{
+			"Name": "Claude Here",
+			"UUID": "com.hbyi.agentdeck.claudehere",
+			"Icon": "imgs/actions/claudehere/icon",
+			"Tooltip": "Opens a Windows Terminal tab with WSL in the focused Explorer folder and starts claude.",
+			"PropertyInspectorPath": "ui/claude-here.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/claudehere/key",
 					"ShowTitle": false
 				}
 			]

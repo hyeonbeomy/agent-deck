@@ -180,3 +180,32 @@ export function renderSysMonitor(s: SysSample, historyLength: number): string {
 		line(`${formatGb(s.usedBytes)} / ${formatGb(s.totalBytes)} GB`, 135, 11, "#6b7280", 600);
 	return toDataUri(frame("#0b0f17", body));
 }
+
+/* ---------- Claude App / Claude Here keys ---------- */
+
+/** Claude desktop app key: an app-window glyph with a running/off dot. */
+export function renderClaudeApp(running: boolean): string {
+	const dot = running ? "#22c55e" : "#6b7280";
+	const body =
+		`<rect x="36" y="28" width="72" height="58" rx="8" fill="#1f2937" stroke="#9ca3af" stroke-width="3"/>` +
+		`<rect x="36" y="28" width="72" height="16" rx="8" fill="#9ca3af"/>` +
+		`<rect x="36" y="36" width="72" height="8" fill="#9ca3af"/>` +
+		`<rect x="48" y="54" width="48" height="6" rx="3" fill="#d97757"/>` +
+		`<rect x="48" y="66" width="30" height="6" rx="3" fill="#d97757" opacity="0.7"/>` +
+		`<circle cx="104" cy="84" r="9" fill="${dot}" stroke="#111827" stroke-width="3"/>` +
+		line(LABELS.claudeApp, 112, 13, "#e5e7eb", 700) +
+		line(running ? LABELS.appRunning : LABELS.appOff, 130, 12, running ? "#86efac" : "#9ca3af", 600);
+	return toDataUri(frame("#111827", body));
+}
+
+/** Claude Here key: a folder with a prompt, "start claude in the focused folder". */
+export function renderClaudeHere(): string {
+	const body =
+		`<rect x="30" y="34" width="36" height="16" rx="5" fill="#d97706"/>` +
+		`<rect x="30" y="42" width="84" height="52" rx="6" fill="#f59e0b"/>` +
+		`<rect x="30" y="50" width="84" height="44" rx="6" fill="#fbbf24"/>` +
+		line(">_", 82, 24, "#111827", 800) +
+		line(LABELS.claudeHere, 116, 13, "#e5e7eb", 700) +
+		line(LABELS.wslHint, 133, 11, "#9ca3af", 500);
+	return toDataUri(frame("#111827", body));
+}

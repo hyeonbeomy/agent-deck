@@ -29,12 +29,18 @@ test("resolveFocusKey finds a session by key, pid or label", () => {
 let server: ReturnType<typeof startServer>;
 let base: string;
 const focused: string[] = [];
+const pressed: { action: string; settings: unknown }[] = [];
 
 before(async () => {
 	server = startServer(seededStore(), "127.0.0.1", 0, silent, {
 		focus: async (key) => {
 			focused.push(key);
 			return { ok: true, code: 0, detail: "", ms: 7 };
+		},
+		press: (action, settings) => {
+			if (action !== "claudehere") return undefined;
+			pressed.push({ action, settings });
+			return Promise.resolve({ ok: true, code: 0, detail: "folder=C:/work", ms: 9 });
 		}
 	});
 	await once(server, "listening");
@@ -61,6 +67,33 @@ test("POST /focus answers 404 with the known sessions when nothing matches", asy
 test("POST /focus rejects a non-JSON body", async () => {
 	const res = await fetch(`${base}/focus`, { method: "POST", body: "not json" });
 	assert.equal(res.status, 400);
+});
+
+test("POST /press runs a launcher key with the given settings and returns its result", async () => {
+	const res = await fetch(`${base}/press`, {
+		method: "POST",
+		body: JSON.stringify({ action: "claudehere", settings: { defaultFolder: "C:/work" } })
+	});
+	assert.equal(res.status, 200);
+	assert.deepEqual(await res.json(), { action: "claudehere", ok: true, code: 0, detail: "folder=C:/work", ms: 9 });
+	assert.deepEqual(pressed, [{ action: "claudehere", settings: { defaultFolder: "C:/work" } }]);
+});
+
+test("POST /press answers 404 for an unknown action", async () => {
+	const res = await fetch(`${base}/press`, { method: "POST", body: JSON.stringify({ action: "nope" }) });
+	assert.equal(res.status, 404);
+});
+
+test("POSTs sent by a web page (Origin header) are refused", async () => {
+	for (const path of ["/press", "/focus", "/claude"]) {
+		const res = await fetch(`${base}${path}`, {
+			method: "POST",
+			headers: { Origin: "https://example.com" },
+			body: JSON.stringify({ action: "claudehere", pid: 4242 })
+		});
+		assert.equal(res.status, 403, path);
+	}
+	assert.equal(pressed.length, 1, "the launcher must not run for a browser request");
 });
 
 test("GET /health and /state still answer", async () => {

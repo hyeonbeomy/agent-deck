@@ -9,9 +9,12 @@ type Logger = { info(...a: unknown[]): void; warn(...a: unknown[]): void; debug(
 export type ServerHooks = {
 	/** Focus the terminal of a session (store key); resolves to the focus result. */
 	focus?: (key: string) => Promise<unknown>;
+	/** Run a launcher key ("claudeapp", "claudehere") as if it was pressed; undefined for an unknown action. */
+	press?: (action: string, settings: unknown) => Promise<unknown> | undefined;
 };
 
 type FocusRequest = { key?: unknown; pid?: unknown; label?: unknown };
+type PressRequest = { action?: unknown; settings?: unknown };
 
 /** Store key for a /focus request: by key, else by pid, else by label (first match). */
 export function resolveFocusKey(store: SessionStore, body: FocusRequest): string | undefined {
@@ -30,20 +33,32 @@ export function resolveFocusKey(store: SessionStore, body: FocusRequest): string
  *   POST /codex   body = Codex notify payload
  *   POST /focus   body = {"key": "claude:<id>"} | {"pid": 1234} | {"label": "project"}; focuses
  *                 that session's terminal exactly like a key press and returns the result (debugging)
+ *   POST /press   body = {"action": "claudeapp" | "claudehere", "settings": {...}}; runs that
+ *                 launcher key like a key press and returns the result (debugging)
  *   GET  /state   current sessions, for debugging
+ * POSTs carrying an Origin header come from a web page, not from a hook or curl, and are refused.
  */
 export function startServer(store: SessionStore, host: string, port: number, log: Logger, hooks: ServerHooks = {}): http.Server {
+	const json = (res: http.ServerResponse, status: number, body: unknown): void => {
+		res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+		res.end(JSON.stringify(body, null, 2));
+	};
+
 	const server = http.createServer((req, res) => {
 		const url = req.url?.split("?")[0] ?? "/";
 
 		if (req.method === "GET" && (url === "/state" || url === "/health")) {
-			res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-			res.end(JSON.stringify(url === "/health" ? { ok: true } : store.list(), null, 2));
+			json(res, 200, url === "/health" ? { ok: true } : store.list());
 			return;
 		}
 
-		if (req.method !== "POST" || (url !== "/claude" && url !== "/codex" && url !== "/focus")) {
+		if (req.method !== "POST" || !["/claude", "/codex", "/focus", "/press"].includes(url)) {
 			res.writeHead(404).end();
+			return;
+		}
+		if (req.headers.origin) {
+			req.resume();
+			json(res, 403, { error: "requests from web pages are not accepted" });
 			return;
 		}
 
@@ -56,8 +71,9 @@ export function startServer(store: SessionStore, host: string, port: number, log
 			else chunks.push(c);
 		});
 		req.on("end", () => {
-			if (url === "/focus") {
-				void handleFocus(Buffer.concat(chunks).toString("utf8"), res);
+			const text = Buffer.concat(chunks).toString("utf8");
+			if (url === "/focus" || url === "/press") {
+				void handleCommand(url, text, res);
 				return;
 			}
 			// Answer right away; the hook doesn't wait for anything.
@@ -67,7 +83,7 @@ export function startServer(store: SessionStore, host: string, port: number, log
 				return;
 			}
 			try {
-				const payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+				const payload = JSON.parse(text);
 				if (typeof payload !== "object" || payload === null) return;
 				if (url === "/claude") store.applyClaude(payload);
 				else store.applyCodex(payload);
@@ -78,33 +94,35 @@ export function startServer(store: SessionStore, host: string, port: number, log
 		req.on("error", () => res.destroy());
 	});
 
-	async function handleFocus(text: string, res: http.ServerResponse): Promise<void> {
-		const json = (status: number, body: unknown): void => {
-			res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-			res.end(JSON.stringify(body, null, 2));
-		};
-		if (!hooks.focus) {
-			json(501, { error: "focus is not available" });
-			return;
-		}
-		let body: FocusRequest;
+	/** /focus and /press: parse the body, run the hook, answer with its result. */
+	async function handleCommand(url: string, text: string, res: http.ServerResponse): Promise<void> {
+		let body: Record<string, unknown>;
 		try {
 			const parsed: unknown = text ? JSON.parse(text) : {};
 			if (typeof parsed !== "object" || parsed === null) throw new Error("body must be a JSON object");
-			body = parsed as FocusRequest;
+			body = parsed as Record<string, unknown>;
 		} catch (err) {
-			json(400, { error: String(err) });
-			return;
-		}
-		const key = resolveFocusKey(store, body);
-		if (!key) {
-			json(404, { error: "no such session", sessions: store.list().map((s) => ({ key: s.key, pid: s.pid, label: s.label })) });
+			json(res, 400, { error: String(err) });
 			return;
 		}
 		try {
-			json(200, { key, ...((await hooks.focus(key)) as object) });
+			if (url === "/focus") {
+				if (!hooks.focus) return json(res, 501, { error: "focus is not available" });
+				const key = resolveFocusKey(store, body as FocusRequest);
+				if (!key) {
+					return json(res, 404, {
+						error: "no such session",
+						sessions: store.list().map((s) => ({ key: s.key, pid: s.pid, label: s.label }))
+					});
+				}
+				return json(res, 200, { key, ...((await hooks.focus(key)) as object) });
+			}
+			const { action, settings } = body as PressRequest;
+			const running = typeof action === "string" ? hooks.press?.(action, settings) : undefined;
+			if (!running) return json(res, 404, { error: "no such action", actions: ["claudeapp", "claudehere"] });
+			return json(res, 200, { action, ...((await running) as object) });
 		} catch (err) {
-			json(500, { key, error: String(err) });
+			json(res, 500, { error: String(err) });
 		}
 	}
 
