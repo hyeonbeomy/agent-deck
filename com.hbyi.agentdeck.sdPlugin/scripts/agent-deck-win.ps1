@@ -250,7 +250,8 @@ function Try-Focus([string]$needle, [bool]$terminalsOnly) {
 # inside a Claude Code session, variables such as NO_COLOR and CLAUDE_CODE_CHILD_SESSION would
 # travel on into every terminal opened here: no colours, and a claude that registers as another
 # session's child and therefore never gets a key. $arguments must already be quoted.
-function Start-Clean([string]$file, [string[]]$arguments) {
+# $extraEnvironment adds or replaces variables on top of the fresh environment.
+function Start-Clean([string]$file, [string[]]$arguments, [hashtable]$extraEnvironment = @{}) {
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $file
     $psi.Arguments = ($arguments -join " ")
@@ -262,6 +263,7 @@ function Start-Clean([string]$file, [string[]]$arguments) {
         $psi.Environment.Clear()
         foreach ($name in $fresh.Keys) { $psi.Environment[$name] = $fresh[$name] }
     }
+    foreach ($name in $extraEnvironment.Keys) { $psi.Environment[[string]$name] = [string]$extraEnvironment[$name] }
     [void][System.Diagnostics.Process]::Start($psi)
 }
 

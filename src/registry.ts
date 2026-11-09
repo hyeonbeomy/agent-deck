@@ -24,9 +24,13 @@ export interface RegistryEntry {
 
 type Logger = { info(...a: unknown[]): void; warn(...a: unknown[]): void; debug(...a: unknown[]): void };
 
+/** Claude Code's configuration folder (settings.json, sessions/, ...). */
+export function claudeConfigDir(): string {
+	return process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+}
+
 export function registryDir(): string {
-	const base = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
-	return path.join(base, "sessions");
+	return path.join(claudeConfigDir(), "sessions");
 }
 
 /** Parse one registry file. Returns undefined for anything that is not an interactive terminal session. */

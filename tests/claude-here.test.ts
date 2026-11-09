@@ -1,7 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { claudeHereArgs } from "../src/claude-here";
+import { claudeHereArgs, wantsFullscreen } from "../src/claude-here";
+
+test("wantsFullscreen is true only when Claude's settings ask for the fullscreen interface", () => {
+	assert.equal(wantsFullscreen('{"tui":"fullscreen","model":"x"}'), true);
+	assert.equal(wantsFullscreen('{"tui":"default"}'), false);
+	assert.equal(wantsFullscreen('{"model":"x"}'), false);
+	assert.equal(wantsFullscreen("not json"), false);
+	assert.equal(wantsFullscreen("[]"), false);
+	assert.equal(wantsFullscreen(""), false);
+});
+
+test("claudeHereArgs adds -Fullscreen when the fullscreen interface has to be forced", () => {
+	assert.deepEqual(claudeHereArgs({ tab: true }, { fullscreen: true }), ["-Tab", "-Fullscreen"]);
+	assert.deepEqual(claudeHereArgs(undefined, { fullscreen: true }), ["-Fullscreen"]);
+	assert.deepEqual(claudeHereArgs({}, { fullscreen: false }), []);
+});
 
 test("claudeHereArgs is empty when nothing is configured (a new terminal window is the default)", () => {
 	assert.deepEqual(claudeHereArgs(undefined), []);

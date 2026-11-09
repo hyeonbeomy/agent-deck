@@ -1,6 +1,6 @@
 {
 	"name": "agent-deck",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"private": true,
 	"description": "Stream Deck plugin: one key per Claude Code / Codex session, showing live state and jumping to its window.",
 	"scripts": {

@@ -26,6 +26,14 @@
   plain console window. The terminal gets a fresh logon environment, not the plugin's (see
   Start-Clean), so it looks and behaves like one opened from the Start menu.
 
+  -Fullscreen adds CLAUDE_CODE_NO_FLICKER=1 to that environment. The plugin passes it when the
+  user's Claude settings say tui = fullscreen: Claude Code turns the fullscreen interface off by
+  itself after two failed starts, and this variable is its documented override (the same as
+  typing /tui fullscreen in the session).
+
+  -Command replaces "claude" (default) with another command line to run in the folder, for
+  testing the launch path without starting a session. It must not contain ';'.
+
   -DryRun prints the folder, the mount that would be made and the command, and starts nothing.
   Exit codes: 0 = started, 1 = could not start (folder unreachable in WSL, mount failed).
   Keep this file ASCII-only: Windows PowerShell 5.1 reads BOM-less scripts as ANSI.
@@ -36,6 +44,8 @@ param(
     [string]$TerminalProfile = "",
     [switch]$Tab,
     [switch]$KeepShell,
+    [switch]$Fullscreen,
+    [string]$Command = "claude",
     [switch]$DryRun
 )
 
@@ -223,10 +233,16 @@ $name = Split-Path -Path $folder -Leaf
 if (-not $name) { $name = $folder }
 $title = "claude: $name"
 # No semicolons: Windows Terminal treats ';' as its own command separator.
-$inner = "claude"
-if ($KeepShell) { $inner = "claude || true && exec bash -i" }
+$inner = $Command
+if ($KeepShell) { $inner = "$Command || true && exec bash -i" }
 
 $wslArgs = @($wslBase + @("--cd", $linux, "--", "bash", "-lic", $inner)) | ForEach-Object { Quote-Arg $_ }
+
+$extra = @{}
+if ($Fullscreen) {
+    $extra["CLAUDE_CODE_NO_FLICKER"] = "1"
+    $note += " fullscreen=forced"
+}
 
 Write-Output "folder=$folder source=$source wsl=$linux$note"
 $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
@@ -237,11 +253,11 @@ if ($wt) {
     if ($TerminalProfile) { $wtArgs += @("-p", (Quote-Arg $TerminalProfile)) }
     $wtArgs += @("wsl.exe") + $wslArgs
     if ($DryRun) { Write-Output ("wt.exe " + ($wtArgs -join " ")); exit 0 }
-    Start-Clean $wt.Source $wtArgs
+    Start-Clean $wt.Source $wtArgs $extra
 } else {
     if ($DryRun) { Write-Output ("wsl.exe " + ($wslArgs -join " ")); exit 0 }
     # "start" gives wsl.exe a console window of its own; this script has none to share.
-    Start-Clean "cmd.exe" (@("/c", "start", '""', "wsl.exe") + $wslArgs)
+    Start-Clean "cmd.exe" (@("/c", "start", '""', "wsl.exe") + $wslArgs) $extra
 }
 
 # Bring the new tab forward (best effort): it carries our title until Claude Code renames it.
