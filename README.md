@@ -3,7 +3,7 @@
 Stream Deck 키 하나에 Claude Code(또는 Codex) 세션 하나를 보여주는 Windows용 플러그인입니다.
 키 위의 픽셀 마스코트가 세션 상태(작업 중 / 승인 대기 / 완료 / 자는 중 / 오류)에 맞춰 움직이고, 키를 누르면 그 세션이 돌고 있는 터미널 창(Windows Terminal이면 그 탭)으로 바로 이동합니다. CPU / RAM 사용량 키도 들어 있습니다.
 
-> 아이디어는 macOS 노치에 AI 코딩 에이전트 상태를 띄워 주는 [CodeIsland](https://github.com/wxtsky/CodeIsland)(wxtsky, MIT)에서 가져왔습니다. 이 프로젝트는 그 개념을 Windows + Stream Deck용으로 처음부터 새로 구현한 것입니다. 자세한 내용은 맨 아래 [참고와 저작권](#참고와-저작권)을 보세요.
+> 아이디어와 마스코트 디자인은 macOS 노치에 AI 코딩 에이전트 상태를 띄워 주는 [CodeIsland](https://github.com/wxtsky/CodeIsland)(wxtsky, MIT)에서 가져왔습니다. 코드는 Windows + Stream Deck용으로 새로 썼고, 마스코트는 CodeIsland의 Claude 마스코트를 보고 코드로 다시 그린 것입니다. 자세한 내용은 맨 아래 [참고와 저작권](#참고와-저작권)을 보세요.
 
 ## 키 세 가지
 
@@ -224,5 +224,5 @@ tools/simulate.mjs     가짜 세션으로 키 확인
 
 ## 참고와 저작권
 
-- **[CodeIsland](https://github.com/wxtsky/CodeIsland)** (wxtsky, MIT License): "에이전트가 하는 일에 따라 움직이는 픽셀 마스코트로 코딩 에이전트의 상태를 보여준다"는 아이디어와 상태 구분(작업 중 / 승인 대기 / 완료 / 대기)은 이 프로젝트에서 가져왔습니다. CodeIsland는 macOS 노치용 Swift 앱이고, Agent Deck은 그 개념을 Windows + Stream Deck용 TypeScript 플러그인으로 독립적으로 구현한 것입니다. CodeIsland의 코드나 이미지 자산은 포함하지 않았으며, 마스코트는 이 프로젝트에서 셀 단위로 새로 그렸습니다.
-- Claude, Claude Code는 Anthropic의, Codex는 OpenAI의, Stream Deck은 Elgato의 상표입니다. 이 프로젝트는 이들 회사와 관련이 없는 비공식 개인 프로젝트입니다.
+- **[CodeIsland](https://github.com/wxtsky/CodeIsland)** (Copyright (c) 2026 wxtsky, MIT License): "에이전트가 하는 일에 따라 움직이는 픽셀 마스코트로 상태를 보여준다"는 아이디어와 상태 구분, 그리고 **마스코트 디자인**을 가져왔습니다. 이 저장소의 마스코트는 CodeIsland의 `docs/images/mascots/claude.gif`를 보고 `src/mascot.ts`에 셀 단위로 다시 그린 것입니다. 타이핑 장면은 원본을 거의 그대로 따랐고, 자는 중·완료·대기·오류 장면은 이 프로젝트에서 추가했습니다. CodeIsland의 파일(이미지, 코드)을 복사해 넣은 것은 없지만 디자인상 2차 저작물로 볼 수 있어 MIT 라이선스 고지를 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 포함했습니다. CodeIsland는 macOS용 Swift 앱이고, 이 플러그인의 코드는 TypeScript로 새로 썼습니다.
+- 이 마스코트(주황색 네모 몸통에 눈 둘)는 Claude Code의 주황색 픽셀 캐릭터를 연상시키는 디자인입니다. Claude, Claude Code는 Anthropic의, Codex는 OpenAI의, Stream Deck은 Elgato의 상표이며, 이 프로젝트는 이들 회사와 관련 없는 비공식 개인 프로젝트입니다. 공개 배포 전에는 Anthropic의 브랜드 사용 정책을 확인하거나 캐릭터를 독자 디자인으로 바꾸는 것을 권합니다.
